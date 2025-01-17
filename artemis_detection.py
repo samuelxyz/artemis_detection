@@ -1,5 +1,11 @@
 import csv
 import matplotlib.pyplot as plt
+import matplotlib.animation as anim
+
+# what orbits do i want?
+# let's say jacobi constant at least 3 and pd at least 11. note lower J means more energy (intuitively J has a -v^2 term)
+# note that stability index =1 is marginally stable and >1 is unstable at least in cr3bp. in ephemeris force models the ones tightest around moon and lpoint seem more consistent
+# good paper here https://www.researchgate.net/publication/339028637_Stationkeeping_and_Transfer_Trajectory_Design_for_Spacecraft_in_Cislunar_Space
 
 def load_eph_file(fname: str):
     res = []
@@ -39,15 +45,48 @@ def at_time(eph, julian_date):
     # Actually do we even need this function? nvm let's leave it for now
     pass
 
-orion_ICRF = load_eph_file("horizons_results_orion_barycenter_1day_csv.txt")
+def plot_ephem(eph, **kwargs):
+    posns = [entry["pos"] for entry in eph]
+    posns_zipped = tuple(zip(*posns))
+    ax.plot(*posns_zipped, **kwargs)
+
+# orion_ICRF = load_eph_file("horizons_results_orion_barycenter_1day_csv.txt")
+orion_ICRF = load_eph_file("horizons_results_orion_barycenter_1hour_csv.txt")
+earth_ICRF = load_eph_file("horizons_results_earth_barycenter_1hour_csv.txt")
+moon_ICRF = load_eph_file("horizons_results_moon_barycenter_1hour_csv.txt")
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 ax.set(xlabel='X', ylabel='Y', zlabel='Z')
 ax.xaxis.set_major_formatter('{x:.1e}')
 ax.yaxis.set_major_formatter('{x:.1e}')
 ax.zaxis.set_major_formatter('{x:.1e}')
-posns = [entry["pos"] for entry in orion_ICRF]
-posns_zipped = tuple(zip(*posns))
-ax.plot(*posns_zipped)
+plot_ephem(orion_ICRF, label='Artemis 1')
+plot_ephem(earth_ICRF, color='green', label='Earth')
+plot_ephem(moon_ICRF, color='gray', label='Moon')
+
+orion_pos = orion_ICRF[0]["pos"]
+earth_pos = earth_ICRF[0]["pos"]
+moon_pos = moon_ICRF[0]["pos"]
+data = tuple(zip(orion_pos, earth_pos, moon_pos))
+points = ax.scatter(*data, c=('blue', 'green', 'gray'))
+time_text = ax.text(-4e5, -4e5, -4e4, '')
+
+time_rate = 3 # skip some frames for a fast-forward effect
+
+def update_anim(i):
+    i = i*time_rate
+    orion_pos = orion_ICRF[i]["pos"]
+    earth_pos = earth_ICRF[i]["pos"]
+    moon_pos = moon_ICRF[i]["pos"]
+    data = tuple(zip(orion_pos, earth_pos, moon_pos))
+    # points.set_offsets(data)
+    points._offsets3d = data # bruh
+    points.stale = True
+    time_text.set_text(f'Time: {orion_ICRF[i]["date_str"]}')
+    return (points, time_text)
+
+ax.legend()
+
+anim_ = anim.FuncAnimation(fig, update_anim, int(len(orion_ICRF)/time_rate), interval=10, blit=False)
 
 plt.show()
