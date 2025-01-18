@@ -143,6 +143,7 @@ def load_orbit(fname: str):
     
     return orbit_ROT
 orbit_ROT = load_orbit('cr3bp_L1_northernhalo_3.17387.csv')
+# orbit_ROT = load_orbit('cr3bp_L1_northernhalo_3.07028.csv')
 orbit_ICRF = to_ICRF(orbit_ROT)
 
 anim_time_rate = 3 # skip some frames for a fast-forward effect
@@ -176,14 +177,20 @@ def animate(ephs, labels, colors, title=''):
 
     return anim.FuncAnimation(fig, update_anim, int(len(orion_ICRF['jd'])/anim_time_rate), interval=10, blit=False)
 
-anim_ICRF = animate((orion_ICRF, earth_ICRF, moon_ICRF, orbit_ICRF), 
+anim_ = animate((orion_ICRF, earth_ICRF, moon_ICRF, orbit_ICRF), 
                     ('Artemis 1', 'Earth', 'Moon', 'L1 Halo Observer'), 
                     ('C0', 'green', 'gray', 'red'), 
-                    'Artemis 1 Mission (ICRF Barycenter)')
-# anim_ROT = animate((orion_ROT, earth_ROT, moon_ROT, orbit_ROT), 
+                    'Artemis 1 Mission (ICRF Barycenter Frame)')
+# anim_ = animate((orion_ROT, earth_ROT, moon_ROT, orbit_ROT), 
 #                    ('Artemis 1', 'Earth', 'Moon', 'L1 Halo Observer'), 
 #                    ('C0', 'green', 'gray', 'red'), 
 #                    'Artemis 1 Mission (Earth-Moon Rotating Barycenter Frame)')
+
+if True:
+    writer = anim.PillowWriter(fps=20,
+                                    metadata=dict(artist='Samuel Tan'),
+                                    bitrate=1800)
+    anim_.save('ICRF.gif', writer=writer)
 
 def simulate_surveillance(imaging_interval, fov, sensing_range):
     """Simulate a random pointing mission where `orbit_ICRF` attempts to image `orion_ICRF`.
