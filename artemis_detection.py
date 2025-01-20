@@ -142,8 +142,9 @@ def load_orbit(fname: str):
         # TODO other parameters like range, range rate, light, etc could be corrected
     
     return orbit_ROT
-orbit_ROT = load_orbit('cr3bp_L1_northernhalo_3.17387.csv')
+# orbit_ROT = load_orbit('cr3bp_L1_northernhalo_3.17387.csv')
 # orbit_ROT = load_orbit('cr3bp_L1_northernhalo_3.07028.csv')
+orbit_ROT = load_orbit('cr3bp_L2_southernhalo_3.12603.csv')
 orbit_ICRF = to_ICRF(orbit_ROT)
 
 anim_time_rate = 3 # skip some frames for a fast-forward effect
@@ -186,7 +187,7 @@ anim_ = animate((orion_ICRF, earth_ICRF, moon_ICRF, orbit_ICRF),
 #                    ('C0', 'green', 'gray', 'red'), 
 #                    'Artemis 1 Mission (Earth-Moon Rotating Barycenter Frame)')
 
-if True:
+if False:
     writer = anim.PillowWriter(fps=20,
                                     metadata=dict(artist='Samuel Tan'),
                                     bitrate=1800)
